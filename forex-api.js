@@ -53,9 +53,9 @@ function getHistory(pair, start, end) {
     OANDA.rate.history(pair, postParams, function(response) {
         if(response && !response.error) {
             // create an array of candlesticks
-            var candlesticks = {};            
+            var candlesticks = [];            
             $.each(response.candles, function(index) {
-                candlesticks[index] = response.candles[index];
+                candlesticks.push(response.candles[index]);
             });
         
             // Do something with response
@@ -148,6 +148,6 @@ $(document).ready(function(){
     
     $("#getInstruments").click(function() { getInstruments(); });
     $("#getQuote").click(function() { getQuote(pair); });
-    $("#getHistory").click(function() { getHistory(pair); });
-    // $("#getHistory").click(function() { getHistory(pair, start, end); });
+    // $("#getHistory").click(function() { getHistory(pair); });
+    $("#getHistory").click(function() { getHistory(pair, start, end); });
 });

@@ -35,6 +35,37 @@ function init() {
 	window.addEventListener('resize', onWindowResize, false);
 }
 
+function addLines(coords) {
+	var geometry = new THREE.BufferGeometry();
+	var endpoints = coords.length * 2;
+	geometry.attributes = {
+		position: {
+			itemSize: 3,
+			array: new Float32Array(endpoints * 3)
+		}
+	}
+
+	var positions = geometry.attributes.position.array;
+	var count = 0;
+
+	for (var i = 0; i < coords.length; i++) {
+		var x = coords[i][0] * SCALE;
+		var y = coords[i][1] * SCALE;
+		var z = coords[i][2] * SCALE;
+		positions[count] = 0;
+		positions[count + 1] = 0;
+		positions[count + 2] = 0;
+		positions[count + 3] = x;
+		positions[count + 4] = y;
+		positions[count + 5] = z;
+		count += 6;
+	}
+
+	geometry.computeBoundingSphere();
+	return new THREE.Line(geometry, new THREE.LineBasicMaterial({color: 0x00FF00}), Three.LinePieces);
+
+}
+
 function animate () {
 	requestAnimationFrame(animate);
 	controls.update(1);

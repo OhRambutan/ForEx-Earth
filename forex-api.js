@@ -1,16 +1,21 @@
 /**
- * Get all instrument name and display name data. 
+ * Get a dictionary of all instruments. 
  */
 function getInstruments(){
-    var postParams = { fields: ['instrument', 'displayName'] };
-    
-    $.get('http://api-sandbox.oanda.com/v1/instruments',
-            postParams,
-            function(data) {
-                displayResult(data, 'instruments');
-            },
-        "json")
-     .fail(function(jqXHR, textStatus, errorThrown) { console.log(textStatus); });    
+        
+    OANDA.rate.instruments(['instrument', 'displayName'], function(response) {
+        if(response && !response.error) {
+            var instruments = {};
+            
+            // create a dictionary of instruments
+            $.each(response.instruments, function(index) {
+                instruments[response.instruments[index].instrument] = response.instruments[index].displayName;
+            });
+
+            // Do something with instruments
+            displayResult(response, 'instruments');
+        }
+    });    
 }
 
 
@@ -18,16 +23,17 @@ function getInstruments(){
  * Get current data for provided pair (VAL1_VAL2).
  */
 function getQuote(pair) {
-    var postParams = { instruments: pair };
     
-    $.get('http://api-sandbox.oanda.com/v1/quote',
-            postParams,
-            function(data) {
-                displayResult(data, 'quote');
-            },
-        "json")
-     .fail(function(jqXHR, textStatus, errorThrown) { console.log(textStatus); });
-    
+    OANDA.rate.quote([pair], function(response) {
+        if(response && !response.error) {
+            // initialize sell and buy prices
+            var bid = response.prices[0].bid;
+            var ask = response.prices[0].ask;
+            
+            // Do something with prices
+            displayResult(response, 'quote');
+        }
+    });    
 }
 
 /**
@@ -38,19 +44,25 @@ function getQuote(pair) {
  */
 function getHistory(pair, start, end) {
     if (typeof start === 'undefined') {
-        var postParams = { instrument: pair, granularity: 'D', count: 10 };
+        var postParams = {granularity: 'D', count: 10 };
     }
     else {
-        var postParams = { instrument: pair, granularity: 'D', start: start, end: end, includeFirst: false };
+        var postParams = {granularity: 'D', start: start, end: end, includeFirst: false };
     }
+    
+    OANDA.rate.history(pair, postParams, function(response) {
+        if(response && !response.error) {
+            // create an array of candlesticks
+            var candlesticks = {};            
+            $.each(response.candles, function(index) {
+                candlesticks[index] = response.candles[index];
+            });
         
-    $.get('http://api-sandbox.oanda.com/v1/history',
-            postParams,
-            function(data) {
-                displayResult(data, 'history');
-            },
-        "json")
-     .fail(function(jqXHR, textStatus, errorThrown) { console.log(textStatus); });
+            // Do something with response
+            displayResult(response, 'history');
+        }
+    });
+    
 }
 
 /**
@@ -136,6 +148,6 @@ $(document).ready(function(){
     
     $("#getInstruments").click(function() { getInstruments(); });
     $("#getQuote").click(function() { getQuote(pair); });
-    // $("#getHistory").click(function() { getHistory(pair); });
-    $("#getHistory").click(function() { getHistory(pair, start, end); });
+    $("#getHistory").click(function() { getHistory(pair); });
+    // $("#getHistory").click(function() { getHistory(pair, start, end); });
 });

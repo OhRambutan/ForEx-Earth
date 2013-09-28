@@ -8,5 +8,15 @@
 		<script src="js/three/controls/TrackballControls.js"></script>
 		<script src="js/three/Detector.js"></script>
 		<script src="js/forexearth.js"></script>
+		<script src="js/jquery/jquery-1.10.2.js"></script>
+		<script>
+			$(document).ready(function() {
+				$.ajax({type: "GET", url : "coords.json", dataType: "json"}).done(function(data) {
+					var coord = data.capitals;
+					scene.add(addLines(coord));
+
+				});
+			});
+		</script>
 	</body>
 </html>

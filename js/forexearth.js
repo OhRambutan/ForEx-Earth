@@ -47,11 +47,15 @@ function addLines(coords) {
 
 	var positions = geometry.attributes.position.array;
 	var count = 0;
+	var SCALE = 0.001;
 
 	for (var i = 0; i < coords.length; i++) {
-		var x = coords[i][0] * SCALE;
-		var y = coords[i][1] * SCALE;
-		var z = coords[i][2] * SCALE;
+		var x = Math.floor(coords[i].X * SCALE);
+		var y = Math.floor(coords[i].Y * SCALE);
+		var z = Math.floor(coords[i].Z * SCALE);
+		console.log(x);
+		console.log(y);
+		console.log(z);
 		positions[count] = 0;
 		positions[count + 1] = 0;
 		positions[count + 2] = 0;
@@ -62,7 +66,7 @@ function addLines(coords) {
 	}
 
 	geometry.computeBoundingSphere();
-	return new THREE.Line(geometry, new THREE.LineBasicMaterial({color: 0x00FF00}), Three.LinePieces);
+	return new THREE.Line(geometry, new THREE.LineBasicMaterial({color: 0x00FF00}), THREE.LinePieces);
 
 }
 

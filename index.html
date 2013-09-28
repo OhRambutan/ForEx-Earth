@@ -1,9 +1,18 @@
 <html>
 	<head>
 		<title>My first Three.js app</title>
-		<style>canvas { width: 100%; height: 100% }</style>
+    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="css/bootstrap-responsive.css" type="text/css">
+    <link rel="stylesheet" href="css/custom.css" type="text/css">
 	</head>
 	<body>
+    <div class="row">
+      <div class="span11" id="earth"></div>
+      <div class="span1" id="side-bar">
+        SIDEBAR
+      </div>
+    </div>
+
 		<script src="js/three/three.min.js"></script>
 		<script src="js/three/controls/TrackballControls.js"></script>
 		<script src="js/three/Detector.js"></script>

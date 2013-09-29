@@ -124,11 +124,11 @@ function addLines(coords) {
 		positions[count + 5] = z;
 		count += 6;
 	}*/
-	var lat = 0;
-	var lon = 0; 
-	for (var i = 0; i < 90; i++) {
-		var phi = (lat) * Math.PI / 180;
-    		var theta = (lon + i) * Math.PI / 180;
+	for (var i = 0; i < coords.length; i++) {
+		var lat = coords[i].lat;
+		var lon = coords[i].lon;
+		var phi = (lat - 90) * Math.PI / 180;
+   		var theta = (180 - (lon)) * Math.PI / 180;
 		var x = 400 * Math.sin(phi) * Math.cos(theta);
 		var y = 400 * Math.cos(phi);
 		var z = 400 * Math.sin(phi) * Math.sin(theta);

@@ -1,5 +1,5 @@
 /**
- * Get a dictionary of all instruments. 
+ * Get a dictionary of all instruments {CUR1_CUR2: Display name}
  */
 function getInstruments(){
         
@@ -11,16 +11,13 @@ function getInstruments(){
             $.each(response.instruments, function(index) {
                 instruments[response.instruments[index].instrument] = response.instruments[index].displayName;
             });
-
-            // Do something with instruments
-            displayResult(response, 'instruments');
         }
     });    
 }
 
 
 /**
- * Get current data for a list of provided pairs [VAL1_VAL2].
+ * Get current exchange rate data for a list of provided pairs [VAL1_VAL2].
  */
 function getQuote(pairs) {
     
@@ -32,8 +29,6 @@ function getQuote(pairs) {
                 pair_values.push(response.prices[index]);
             });
             
-            // Do something with prices
-            displayResult(response, 'quote');
         }
     });    
 }
@@ -59,16 +54,15 @@ function getHistory(pair, start, end) {
             $.each(response.candles, function(index) {
                 candlesticks.push(response.candles[index]);
             });
-        
-            // Do something with response
-            displayResult(response, 'history');
         }
     });
     
 }
 
+// TODO: Everything below this should get removed
+
 /**
- * Display formatted data in a result textarea. 
+ * Display formatted data in a result textarea.
  */
 function displayResult(data, dataType) {
     var instrumentDescription = '';
@@ -150,6 +144,6 @@ $(document).ready(function(){
     
     $("#getInstruments").click(function() { getInstruments(); });
     $("#getQuote").click(function() { getQuote(pair); });
-    // $("#getHistory").click(function() { getHistory(pair); });
+    // $("#getHistory").click(function() { getHistory(pair[0]); });
     $("#getHistory").click(function() { getHistory(pair[0], start, end); });
 });

@@ -20,15 +20,17 @@ function getInstruments(){
 
 
 /**
- * Get current data for provided pair (VAL1_VAL2).
+ * Get current data for a list of provided pairs [VAL1_VAL2].
  */
-function getQuote(pair) {
+function getQuote(pairs) {
     
-    OANDA.rate.quote([pair], function(response) {
+    OANDA.rate.quote(pairs, function(response) {
         if(response && !response.error) {
-            // initialize sell and buy prices
-            var bid = response.prices[0].bid;
-            var ask = response.prices[0].ask;
+            // create an array that contains sell and buy values for each pairs
+            var pair_values = [];
+            $.each(response.prices, function(index) {
+                pair_values.push(response.prices[index]);
+            });
             
             // Do something with prices
             displayResult(response, 'quote');
@@ -37,7 +39,7 @@ function getQuote(pair) {
 }
 
 /**
- * Get history for provided pair (VAL1_VAL2). Time slice, measured by granularity, is 1 day. 
+ * Get history for provided pair VAL1_VAL2. Time slice, measured by granularity, is 1 day. 
  * If start and end are not provided, default chunk of history (10 day) is returned. 
  * Start and end parameters are used to obtain a particular time slice history and 
  * must be in RFC3339 time format. 
@@ -142,12 +144,12 @@ function displayHistory(data) {
 
 $(document).ready(function(){
     // TODO: after figuring out implementation, actually provide pair.
-    var pair = 'AUD_CAD';
+    var pair = ['AUD_CAD'];
     var start = '2013-06-21T00:00:00Z';
     var end = '2013-06-21T23:59:59Z';
     
     $("#getInstruments").click(function() { getInstruments(); });
     $("#getQuote").click(function() { getQuote(pair); });
     // $("#getHistory").click(function() { getHistory(pair); });
-    $("#getHistory").click(function() { getHistory(pair, start, end); });
+    $("#getHistory").click(function() { getHistory(pair[0], start, end); });
 });

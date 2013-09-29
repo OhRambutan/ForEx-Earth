@@ -1,51 +1,6 @@
 var scene, camera, renderer, controls;
 var highs;
-
-var Shaders = {
-    'earth' : {
-      uniforms: {
-        'texture': { type: 't', value: null }
-      },
-      vertexShader: [
-        'varying vec3 vNormal;',
-        'varying vec2 vUv;',
-        'void main() {',
-          'gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
-          'vNormal = normalize( normalMatrix * normal );',
-          'vUv = uv;',
-        '}'
-      ].join('\n'),
-      fragmentShader: [
-        'uniform sampler2D texture;',
-        'varying vec3 vNormal;',
-        'varying vec2 vUv;',
-        'void main() {',
-          'vec3 diffuse = texture2D( texture, vUv ).xyz;',
-          'float intensity = 1.05 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) );',
-          'vec3 atmosphere = vec3( 1.0, 1.0, 1.0 ) * pow( intensity, 3.0 );',
-          'gl_FragColor = vec4( diffuse + atmosphere, 1.0 );',
-        '}'
-      ].join('\n')
-    },
-    'atmosphere' : {
-      uniforms: {},
-      vertexShader: [
-        'varying vec3 vNormal;',
-        'void main() {',
-          'vNormal = normalize( normalMatrix * normal );',
-          'gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
-        '}'
-      ].join('\n'),
-      fragmentShader: [
-        'varying vec3 vNormal;',
-        'void main() {',
-          'float intensity = pow( 0.8 - dot( vNormal, vec3( 0, 0, 1.0 ) ), 12.0 );',
-          'gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ) * intensity;',
-        '}'
-      ].join('\n')
-    }
-  };
-
+var lohi;
 
 function init() {
 	if (Detector.webgl) {
@@ -55,43 +10,75 @@ function init() {
 	}
 	
 	camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 2000);
-	camera.position.z = 1000;
+	camera.position.z = 400;
 
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	renderer.setClearColor(0x000000, 1);
 	document.body.appendChild(renderer.domElement);
 
-	var geometry = new THREE.SphereGeometry(200,40,30);
+	var geometry = new THREE.SphereGeometry(200,50, 50);
 	var texture = THREE.ImageUtils.loadTexture('img/world.jpg');
-	//var material = new THREE.MeshBasicMaterial({map : texture});
-	shader = Shaders['earth'];
-	uniforms = THREE.UniformsUtils.clone(shader.uniforms);
-
-    	uniforms['texture'].value = THREE.ImageUtils.loadTexture('img/world.jpg');
-
-	
-	material = new THREE.ShaderMaterial({
-
-          uniforms: uniforms,
-          vertexShader: shader.vertexShader,
-          fragmentShader: shader.fragmentShader
-
-        });
-
+	var material = new THREE.MeshBasicMaterial({map: texture, transparent: true, opacity: 0.8});
 	var world = new THREE.Mesh(geometry, material);
+
+	var geometry2 = new THREE.SphereGeometry(201, 50, 50);
+	var material2 = new THREE.MeshPhongMaterial({color: 0xDDDDDD, transparent: true, opacity: 0.05});
+	var ball = new THREE.Mesh(geometry2, material2);
+
+	/*var light = new THREE.AmbientLight(0x0000FF);
+	light.position.z = 2200;*/
+	var light2 = new THREE.AmbientLight(0xAAAAFF);
 	
 	pivot = new THREE.Object3D();
 	pivot.add(world);
+	pivot.add(ball);
+	pivot.add(lohi);
 	pivot.add(highs);
 
 	scene = new THREE.Scene();
 	scene.add(pivot);
+	scene.add(light2);
 
 	controls = new THREE.TrackballControls(camera);
-	controls.minDistance = 200;
-	controls.maxDistance = 1500;
+	controls.minDistance = 300;
+	controls.maxDistance = 1000;
 	controls.domElement = document.body;
 	window.addEventListener('resize', onWindowResize, false);
+}
+
+function addLoHi(coords) {
+	var geometry = new THREE.BufferGeometry();
+	var particles = coords.length*2;
+	geometry.attributes = {
+		position: {
+			itemSize: 3,
+			array: new Float32Array(particles * 3)
+		}
+	}
+	var positions = geometry.attributes.position.array;
+	var count = 0;
+	for (var i = 0; i < coords.length; i++) {
+		var lat = coords[i].lat;
+		var lon = coords[i].lon;
+		var phi = (lat - 90) * Math.PI / 180;
+		var theta = (180 - (lon)) * Math.PI / 180;
+		var x = 200 * Math.sin(phi) * Math.cos(theta);
+		var y = 200 * Math.cos(phi);
+		var z = 200 * Math.sin(phi) * Math.sin(theta);
+		positions[count] = x*1.1;
+		positions[count + 1] = y*1.1;
+		positions[count + 2] = z*1.1;
+		positions[count + 3] = x*1.4;
+		positions[count + 4] = y*1.4;
+		positions[count + 5] = z*1.4;
+		count += 6;
+	}
+	geometry.computeBoundingSphere();
+        
+        var material = new THREE.ParticleBasicMaterial({color: 0xFF0000, size: 4, depthWrite: true, depthTest: true, fog: false, transparent: true, opacity: 0.7});
+        material.alphaTest = 0.7;
+        return new THREE.ParticleSystem(geometry, material);
+
 }
 
 function addLines(coords) {
@@ -106,54 +93,33 @@ function addLines(coords) {
 
 	var positions = geometry.attributes.position.array;
 	var count = 0;
-	var SCALE = 0.0001;
 
-
-	/*for (var i = 0; i < coords.length; i++) {
-		var x = Math.floor(coords[i].X * SCALE);
-		var y = Math.floor(coords[i].Y * SCALE);
-		var z = Math.floor(coords[i].Z * SCALE);
-		console.log(x);
-		console.log(y);
-		console.log(z);
-		positions[count] = 0;
-		positions[count + 1] = 0;
-		positions[count + 2] = 0;
-		positions[count + 3] = x;
-		positions[count + 4] = y;
-		positions[count + 5] = z;
-		count += 6;
-	}*/
 	for (var i = 0; i < coords.length; i++) {
 		var lat = coords[i].lat;
 		var lon = coords[i].lon;
 		var phi = (lat - 90) * Math.PI / 180;
    		var theta = (180 - (lon)) * Math.PI / 180;
-		var x = 400 * Math.sin(phi) * Math.cos(theta);
-		var y = 400 * Math.cos(phi);
-		var z = 400 * Math.sin(phi) * Math.sin(theta);
-		console.log(x);
-		console.log(y);
-		console.log(z);
-		positions[count] = 0;
-		positions[count + 1] = 0;
-		positions[count + 2] = 0;
-		positions[count + 3] = x;
-		positions[count + 4] = y;
-		positions[count + 5] = z;
+		var x = 200 * Math.sin(phi) * Math.cos(theta);
+		var y = 200 * Math.cos(phi);
+		var z = 200 * Math.sin(phi) * Math.sin(theta);
+		positions[count] = x*1.2;
+		positions[count + 1] = y*1.2;
+		positions[count + 2] = z*1.2;
+		positions[count + 3] = x*1.3;
+		positions[count + 4] = y*1.3;
+		positions[count + 5] = z*1.3;
 		count += 6;
 	}
 
 	geometry.computeBoundingSphere();
 	return new THREE.Line(geometry, new THREE.LineBasicMaterial({color: 0x00FF00}), THREE.LinePieces);
-
 }
 
 function animate () {
 	requestAnimationFrame(animate);
 	controls.update(1);
 	renderer.render(scene, camera);
-};
+}
 
 function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;

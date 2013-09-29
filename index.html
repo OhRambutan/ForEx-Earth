@@ -13,7 +13,9 @@
 			$(document).ready(function() {
 				$.ajax({type: "GET", url : "coords.json", dataType: "json"}).done(function(data) {
 					var coord = data.capitals;
-					scene.add(addLines(coord));
+					highs = addLines(coord);
+					init();
+					animate();
 
 				});
 			});
